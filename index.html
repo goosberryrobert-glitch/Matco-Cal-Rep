@@ -1,0 +1,611 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matco View</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50' y='69' font-size='65' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EC%3C/text%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --border: #e5e7eb;
+  --text: #202124;
+  --muted: #6b7280;
+  --blue: #2563eb;
+  --blue-light: #eff6ff;
+  --green: #16803d;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+.topbar {
+  height: 58px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.brand { font-size: 19px; font-weight: 700; letter-spacing: -.6px; }
+.brand span { color: var(--blue); }
+.top-right { color: var(--muted); font-size: 12px; }
+main { max-width: 1050px; margin: 28px auto; padding: 0 18px 45px; }
+h1 { font-size: 27px; margin: 0 0 8px; letter-spacing: -.7px; }
+.subtitle { color: var(--muted); margin: 0 0 24px; line-height: 1.5; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.tab {
+  background: white; border: 1px solid var(--border);
+  color: #374151; border-radius: 6px; padding: 10px 15px;
+}
+.tab:hover { background: #f9fafb; }
+.tab.active { background: var(--blue-light); border-color: #93b4ff; color: #1d4ed8; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 18px; }
+.panel { border: 1px solid var(--border); border-radius: 9px; background: var(--panel); overflow: hidden; }
+.panel-heading { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+.panel-heading h2 { font-size: 16px; margin: 0 0 5px; }
+.panel-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+.play-area { padding: 18px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat { border: 1px solid var(--border); border-radius: 7px; padding: 12px; }
+.stat-label { color: var(--muted); font-size: 12px; margin-bottom: 7px; }
+.stat-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#clickZone {
+  width: 100%; height: 240px; border: 1px solid #cfd5df;
+  background: #f9fafb; border-radius: 8px; color: #374151;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 20px; user-select: none;
+  touch-action: manipulation; transition: background .12s, border-color .12s;
+}
+#clickZone:hover { background: #f3f4f6; }
+#clickZone.running { background: #eff6ff; border-color: #8bb5ff; }
+#clickZone:active { background: #dbeafe; }
+.zone-main { display: block; font-size: 21px; font-weight: 700; margin-bottom: 8px; }
+.zone-sub { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 13px; }
+.primary, .secondary {
+  border: 1px solid var(--border); border-radius: 6px; padding: 10px 15px;
+  background: white; color: #252525;
+}
+.primary { background: var(--blue); border-color: var(--blue); color: white; }
+.primary:hover { background: #1d4ed8; }
+.secondary:hover { background: #f9fafb; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.hint { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 13px 0 0; }
+.status { padding: 10px 12px; margin-top: 12px; border-radius: 6px; background: #f9fafb; color: #555; line-height: 1.5; font-size: 12px; }
+.status.good { background: #f0fdf4; color: #166534; }
+.status.bad { background: #fef2f2; color: #991b1b; }
+.leaderboard { padding: 0 17px 14px; }
+.lb-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 15px 0; }
+.lb-top h3 { margin: 0; font-size: 15px; }
+.live { color: var(--green); font-size: 11px; }
+.lb-header, .lb-row { display: grid; grid-template-columns: 35px minmax(0,1fr) 64px; gap: 8px; align-items: center; }
+.lb-header { color: var(--muted); font-size: 11px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.lb-row { padding: 12px 0; border-bottom: 1px solid #f0f1f3; }
+.rank { color: var(--muted); }
+.player { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); text-align: center; padding: 25px 5px; line-height: 1.6; }
+.your-score { background: #f8fbff; border: 1px solid #dbeafe; padding: 12px; border-radius: 7px; margin-top: 15px; }
+.your-score strong { display: block; margin-bottom: 5px; }
+.your-score span { color: var(--muted); font-size: 12px; }
+.footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 25px; }
+.modal {
+  position: fixed; inset: 0; z-index: 10; background: rgba(255,255,255,.96);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box { width: 100%; max-width: 380px; }
+.modal-box h2 { font-size: 24px; margin: 0 0 8px; }
+.modal-box p { color: var(--muted); line-height: 1.5; }
+.modal-box label { display: block; margin: 20px 0 7px; font-weight: 700; }
+.modal-box input { width: 100%; padding: 12px; border: 1px solid #cfd5df; border-radius: 6px; outline-color: var(--blue); }
+.modal-box button { width: 100%; margin-top: 12px; }
+.hidden { display: none !important; }
+@media (max-width: 720px) {
+  main { margin-top: 22px; padding: 0 12px 30px; }
+  .layout { grid-template-columns: 1fr; }
+  .topbar { padding: 0 13px; }
+  #clickZone { height: 210px; }
+  .stat-value { font-size: 21px; }
+  .stat { padding: 10px; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Click<span>Test</span></div>
+  <div class="top-right" id="connectionLabel">Connecting to leaderboard...</div>
+</header>
+
+<main>
+  <h1>Clicking Test</h1>
+  <p class="subtitle">Test your clicking speed. Choose a test, click as fast as you can, and compare your score.</p>
+
+  <nav class="tabs" aria-label="Clicking tests">
+    <button class="tab active" data-mode="classic">Classic CPS</button>
+    <button class="tab" data-mode="jitter">Jitter Click</button>
+    <button class="tab" data-mode="kohi">Kohi Test</button>
+    <button class="tab" data-mode="butterfly">Butterfly Click</button>
+  </nav>
+
+  <div class="layout">
+    <section class="panel">
+      <div class="panel-heading">
+        <h2 id="testTitle">Classic CPS Test</h2>
+        <p id="testDescription">A standard clicking speed test.</p>
+      </div>
+
+      <div class="play-area">
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Clicks</div>
+            <div class="stat-value" id="clickCount">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Time left</div>
+            <div class="stat-value" id="timeLeft">10.0s</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">CPS</div>
+            <div class="stat-value" id="cpsValue">0.00</div>
+          </div>
+        </div>
+
+        <button id="clickZone" type="button">
+          <span>
+            <span class="zone-main" id="zoneMain">Click here to start</span>
+            <span class="zone-sub" id="zoneSub">The 10-second test begins with your first click.</span>
+          </span>
+        </button>
+
+        <div class="controls">
+          <button class="primary" id="startButton">Start test</button>
+          <button class="secondary" id="resetButton">Reset</button>
+          <label style="margin-left:auto;color:#6b7280;font-size:12px">
+            Duration
+            <select id="duration" style="margin-left:5px;padding:8px;border:1px solid #e5e7eb;border-radius:6px;background:white">
+              <option value="5">5 sec</option>
+              <option value="10" selected>10 sec</option>
+              <option value="30">30 sec</option>
+              <option value="60">60 sec</option>
+            </select>
+          </label>
+        </div>
+
+        <p class="hint" id="modeHint">Click the large area repeatedly. Your average clicks per second will be calculated at the end.</p>
+        <div class="status" id="statusMessage">Getting the leaderboard ready...</div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="leaderboard">
+        <div class="lb-top">
+          <h3 id="leaderboardTitle">Classic CPS leaderboard</h3>
+          <span class="live" id="liveLabel">● LIVE</span>
+        </div>
+        <div class="lb-header">
+          <span>#</span><span>Player</span><span style="text-align:right">CPS</span>
+        </div>
+        <div id="leaderboardRows">
+          <div class="empty">Connecting to Firebase...</div>
+        </div>
+        <div class="your-score">
+          <strong>Your best: <span id="personalBest">—</span></strong>
+          <span id="playerLabel">Player: not set</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <p class="footer">ClickTest · Simple clicking speed tests</p>
+</main>
+
+<div class="modal" id="usernameModal">
+  <div class="modal-box">
+    <h2>The Click Competition - A Game</h2>
+    <p>The Ultimate Test to see who is really good at clicking.</p>
+    <label for="usernameInput">Username</label>
+    <input id="usernameInput" maxlength="20" placeholder="Enter a username" autocomplete="nickname">
+    <button class="primary" id="saveUsername">Continue</button>
+    <p style="font-size:11px">THIS WILL BE YOUR NAME DURING THE SESSION - YOU CANNOT CHANGE IT AFTER, UNLESS YOU LOG OUT. THIS USERNAME WILL BE DISPLAYED IN THE LEADERBOARDS.</p>
+  </div>
+</div>
+
+<!-- Firebase compatibility SDKs for a plain HTML file -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+<script>
+/*
+  FIREBASE SETUP
+  1. Open Firebase Console > Build > Realtime Database.
+  2. Copy the database URL shown at the top.
+  3. Replace PASTE_YOUR_REAL_DATABASE_URL_HERE below with that exact URL.
+  4. In Build > Authentication > Sign-in method, enable Anonymous.
+*/
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA7KKi5fKw_4TSHoutdOsmFeXK5NaW_tSk",
+  authDomain: "click-test-a8ce8.firebaseapp.com",
+  databaseURL: "https://click-test-a8ce8-default-rtdb.firebaseio.com",
+  projectId: "click-test-a8ce8",
+  storageBucket: "click-test-a8ce8.firebasestorage.app",
+  messagingSenderId: "490137833540",
+  appId: "1:490137833540:web:efc49902882bd0d834ac11"
+};
+
+const modes = {
+  classic: {
+    title: "Classic CPS Test",
+    description: "A standard clicking speed test.",
+    hint: "Click the large area repeatedly. Your average clicks per second will be calculated at the end."
+  },
+  jitter: {
+    title: "Jitter Click Test",
+    description: "A clicking speed test for jitter clicking.",
+    hint: "Use your preferred jitter-clicking technique and click the large area as quickly as you can."
+  },
+  kohi: {
+    title: "Kohi Click Test",
+    description: "A classic 10-second-style clicking challenge.",
+    hint: "Try to maintain a high clicking speed for the whole round. Choose 10 seconds for the classic format."
+  },
+  butterfly: {
+    title: "Butterfly Click Test",
+    description: "A clicking test for alternating fingers.",
+    hint: "Try your butterfly-clicking technique. This page counts clicks from the button; it cannot verify your technique."
+  }
+};
+
+let db = null;
+let currentUser = null;
+let firebaseReady = false;
+let currentMode = "classic";
+let durationSeconds = 10;
+let clicks = 0;
+let running = false;
+let finished = false;
+let startTime = 0;
+let endTime = 0;
+let timerFrame = null;
+let personalBest = {};
+let lastSavedScore = null;
+
+const $ = id => document.getElementById(id);
+
+function setStatus(message, type = "") {
+  $("statusMessage").textContent = message;
+  $("statusMessage").className = "status" + (type ? " " + type : "");
+}
+
+function username() {
+  return localStorage.getItem("clicktest_username") || "Guest";
+}
+
+function setConnection(message) {
+  $("connectionLabel").textContent = message;
+}
+
+function elapsedSeconds() {
+  if (!startTime) return 0;
+  return Math.min(durationSeconds, (performance.now() - startTime) / 1000);
+}
+
+function currentCPS() {
+  const elapsed = elapsedSeconds();
+  return elapsed > 0 ? clicks / elapsed : 0;
+}
+
+function updateStats() {
+  $("clickCount").textContent = clicks;
+  const remaining = running
+    ? Math.max(0, durationSeconds - elapsedSeconds())
+    : (finished ? 0 : durationSeconds);
+  $("timeLeft").textContent = remaining.toFixed(1) + "s";
+  $("cpsValue").textContent = currentCPS().toFixed(2);
+}
+
+function setZone(main, sub) {
+  $("zoneMain").textContent = main;
+  $("zoneSub").textContent = sub;
+}
+
+function cancelAnimation() {
+  if (timerFrame !== null) cancelAnimationFrame(timerFrame);
+  timerFrame = null;
+}
+
+function resetTest() {
+  running = false;
+  finished = false;
+  clicks = 0;
+  startTime = 0;
+  endTime = 0;
+  cancelAnimation();
+  $("clickZone").classList.remove("running");
+  $("startButton").disabled = false;
+  $("startButton").textContent = "Start test";
+  setZone("Click here to start", "The test begins with your first click.");
+  updateStats();
+  setStatus("Ready when you are.");
+}
+
+function setMode(mode) {
+  if (!modes[mode]) return;
+  currentMode = mode;
+  document.querySelectorAll(".tab").forEach(button => {
+    button.classList.toggle("active", button.dataset.mode === mode);
+  });
+  $("testTitle").textContent = modes[mode].title;
+  $("testDescription").textContent = modes[mode].description;
+  $("modeHint").textContent = modes[mode].hint;
+  $("leaderboardTitle").textContent = modes[mode].title.replace(" Test", "") + " leaderboard";
+  resetTest();
+  loadLeaderboard();
+  updatePersonalBest();
+}
+
+function startTest() {
+  if (running) return;
+  resetTest();
+  durationSeconds = Number($("duration").value) || 10;
+  running = true;
+  finished = false;
+  startTime = performance.now();
+  $("clickZone").classList.add("running");
+  $("startButton").disabled = true;
+  $("startButton").textContent = "Test running...";
+  setZone("Keep clicking!", "Click as many times as you can.");
+  setStatus("Test in progress...");
+  tick();
+}
+
+function tick() {
+  if (!running) return;
+  const elapsed = (performance.now() - startTime) / 1000;
+  const remaining = durationSeconds - elapsed;
+
+  if (remaining <= 0) {
+    finishTest();
+    return;
+  }
+
+  $("timeLeft").textContent = remaining.toFixed(1) + "s";
+  $("cpsValue").textContent = (clicks / Math.max(elapsed, 0.001)).toFixed(2);
+  timerFrame = requestAnimationFrame(tick);
+}
+
+function registerClick() {
+  if (finished) return;
+  if (!running) startTest();
+  if (!running) return;
+
+  const elapsed = (performance.now() - startTime) / 1000;
+  if (elapsed >= durationSeconds) {
+    finishTest();
+    return;
+  }
+
+  clicks++;
+  $("clickCount").textContent = clicks;
+  $("cpsValue").textContent = (clicks / Math.max(elapsed, 0.001)).toFixed(2);
+}
+
+async function finishTest() {
+  if (!running) return;
+  running = false;
+  finished = true;
+  endTime = performance.now();
+  cancelAnimation();
+  $("clickZone").classList.remove("running");
+  $("startButton").disabled = false;
+  $("startButton").textContent = "Try again";
+
+  const actualDuration = Math.max(0.001, Math.min(durationSeconds, (endTime - startTime) / 1000));
+  const cps = clicks / actualDuration;
+  $("timeLeft").textContent = "0.0s";
+  $("cpsValue").textContent = cps.toFixed(2);
+  setZone(cps.toFixed(2) + " CPS", clicks + " clicks in " + durationSeconds + " seconds");
+
+  const result = {
+    username: username(),
+    cps: Number(cps.toFixed(3)),
+    clicks: clicks,
+    duration: durationSeconds,
+    createdAt: Date.now()
+  };
+
+  lastSavedScore = result;
+  personalBest[currentMode] = Math.max(personalBest[currentMode] || 0, result.cps);
+  updatePersonalBest();
+
+  if (firebaseReady && db && currentUser) {
+    try {
+      await db.ref("scores/" + currentMode).push({
+        username: result.username,
+        cps: result.cps,
+        clicks: result.clicks,
+        duration: result.duration,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
+      setStatus("Finished! " + cps.toFixed(2) + " CPS. Your score was submitted to the live leaderboard.", "good");
+      loadLeaderboard();
+    } catch (error) {
+      console.error("Score submission failed:", error);
+      setStatus("Finished! " + cps.toFixed(2) + " CPS. Could not submit score: " + friendlyFirebaseError(error), "bad");
+    }
+  } else {
+    setStatus("Finished! " + cps.toFixed(2) + " CPS. Firebase is not connected, so this score was not submitted.", "bad");
+  }
+}
+
+function friendlyFirebaseError(error) {
+  if (!error) return "Unknown error.";
+  if (error.code === "PERMISSION_DENIED" || String(error.message).includes("PERMISSION_DENIED")) {
+    return "Database rules denied access. Check your Realtime Database rules.";
+  }
+  if (error.code === "auth/operation-not-allowed") {
+    return "Enable Anonymous sign-in in Firebase Authentication.";
+  }
+  return error.message || "Check your Firebase configuration.";
+}
+
+function updatePersonalBest() {
+  const best = personalBest[currentMode];
+  $("personalBest").textContent = best ? best.toFixed(2) + " CPS" : "—";
+  $("playerLabel").textContent = "Player: " + username();
+}
+
+function renderLeaderboard(entries) {
+  const root = $("leaderboardRows");
+  root.innerHTML = "";
+
+  if (!entries.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No scores yet. Be the first to set a record!";
+    root.appendChild(empty);
+    $("liveLabel").textContent = firebaseReady ? "● LIVE" : "○ OFFLINE";
+    return;
+  }
+
+  entries.forEach((entry, index) => {
+    const row = document.createElement("div");
+    row.className = "lb-row";
+
+    const rank = document.createElement("span");
+    rank.className = "rank";
+    rank.textContent = index + 1;
+
+    const player = document.createElement("span");
+    player.className = "player";
+    player.textContent = String(entry.username || "Guest");
+
+    const score = document.createElement("span");
+    score.className = "score";
+    score.textContent = Number(entry.cps || 0).toFixed(2);
+
+    row.append(rank, player, score);
+    root.appendChild(row);
+  });
+}
+
+function loadLeaderboard() {
+  if (!db || !firebaseReady) {
+    renderLeaderboard([]);
+    $("leaderboardRows").innerHTML = '<div class="empty">Connect Firebase to see shared scores.</div>';
+    $("liveLabel").textContent = "○ OFFLINE";
+    return;
+  }
+
+  db.ref("scores/" + currentMode).orderByChild("cps").limitToLast(100)
+    .on("value", snapshot => {
+      const entries = [];
+      snapshot.forEach(child => {
+        entries.push({ id: child.key, ...child.val() });
+      });
+
+      entries.sort((a, b) => Number(b.cps || 0) - Number(a.cps || 0));
+      const topTen = entries.slice(0, 10);
+      renderLeaderboard(topTen);
+
+      if (topTen.length) {
+        personalBest[currentMode] = Math.max(
+          personalBest[currentMode] || 0,
+          ...entries.filter(e => e.username === username()).map(e => Number(e.cps || 0))
+        );
+        updatePersonalBest();
+      }
+      $("liveLabel").textContent = "● LIVE";
+    }, error => {
+      console.error("Leaderboard read failed:", error);
+      $("liveLabel").textContent = "○ ERROR";
+      $("leaderboardRows").innerHTML =
+        '<div class="empty">Could not load scores. Check your database rules and URL.</div>';
+      setStatus("Leaderboard error: " + friendlyFirebaseError(error), "bad");
+    });
+}
+
+function initializeFirebase() {
+  if (firebaseConfig.databaseURL === "PASTE_YOUR_REAL_DATABASE_URL_HERE" ||
+      !firebaseConfig.databaseURL.startsWith("https://")) {
+    setConnection("Database URL missing");
+    $("liveLabel").textContent = "○ OFFLINE";
+    $("leaderboardRows").innerHTML =
+      '<div class="empty">Add your real Firebase databaseURL in the HTML to enable the shared leaderboard.</div>';
+    setStatus("Add your Realtime Database URL to the firebaseConfig section in this file.", "bad");
+    return;
+  }
+
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+
+    firebase.auth().signInAnonymously()
+      .then(() => {
+        currentUser = firebase.auth().currentUser;
+        firebaseReady = true;
+        setConnection("Leaderboard connected");
+        setStatus("Connected to the live leaderboard.", "good");
+        loadLeaderboard();
+      })
+      .catch(error => {
+        console.error("Firebase sign-in failed:", error);
+        setConnection("Sign-in failed");
+        setStatus("Firebase sign-in failed: " + friendlyFirebaseError(error), "bad");
+      });
+  } catch (error) {
+    console.error("Firebase initialization failed:", error);
+    setConnection("Firebase error");
+    setStatus("Firebase initialization failed: " + friendlyFirebaseError(error), "bad");
+  }
+}
+
+$("clickZone").addEventListener("click", registerClick);
+$("startButton").addEventListener("click", startTest);
+$("resetButton").addEventListener("click", resetTest);
+$("duration").addEventListener("change", () => {
+  durationSeconds = Number($("duration").value) || 10;
+  if (!running) resetTest();
+});
+document.querySelectorAll(".tab").forEach(button => {
+  button.addEventListener("click", () => setMode(button.dataset.mode));
+});
+
+$("saveUsername").addEventListener("click", () => {
+  const value = $("usernameInput").value.trim().replace(/\s+/g, " ");
+  if (!value) {
+    $("usernameInput").focus();
+    return;
+  }
+  localStorage.setItem("clicktest_username", value.slice(0, 20));
+  $("usernameModal").classList.add("hidden");
+  updatePersonalBest();
+});
+
+$("usernameInput").addEventListener("keydown", event => {
+  if (event.key === "Enter") $("saveUsername").click();
+});
+
+const savedName = localStorage.getItem("clicktest_username");
+if (savedName) {
+  $("usernameModal").classList.add("hidden");
+  $("usernameInput").value = savedName;
+}
+updatePersonalBest();
+updateStats();
+initializeFirebase();
+</script>
+</body>
+</html>
